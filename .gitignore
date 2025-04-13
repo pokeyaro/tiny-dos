@@ -1,0 +1,20 @@
+# Ignore .idea folder (JetBrains IDE)
+.idea/
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore compiled files
+*.o
+*.obj
+*.bin
+*.exe
+*.out
+
+# Ignore log files
+*.txt
+*.log
+
+# Ignore image files
+*.img
