@@ -2,38 +2,74 @@
 # Makefile for Tiny-DOS project
 # -----------------------------------------------
 
-.PHONY: all run clean prebuild
+.PHONY: all run clean prebuild release
 
-# File paths and configurations
+# -----------------------------------------------
+# Source and Build Configuration
+# -----------------------------------------------
+
+# Build output directory
+BUILD          = build
+
+# Source file paths
 BOOTLOADER_SRC = boot/bootloader.asm
-BOOTLOADER_BIN = build/bootloader.bin
-IMG = build/tiny.img
-BOCHS_CFG = bochsrc.bxrc
-IMG_SIZE = 2880
-IMG_BS = 512
+KERNEL_SRC     = kernel/kernel.asm
+
+# Compiled binary outputs
+BOOTLOADER_BIN = $(BUILD)/bootloader.bin
+KERNEL_BIN     = $(BUILD)/kernel.bin
+
+# Disk image settings (1.44MB floppy)
+IMG            = $(BUILD)/tiny.img
+IMG_SIZE       = 2880
+IMG_BS         = 512
+
+# Emulator configuration
+BOCHS_CFG      = bochsrc.bxrc
+
+# -----------------------------------------------
+# Build Process
+# -----------------------------------------------
 
 # Default target: clean build and run
 all: clean run
 
-# Compile bootloader.asm to raw binary
+# Create floppy image with bootloader and kernel
+$(IMG): $(BOOTLOADER_BIN) $(KERNEL_BIN)
+	@echo "[+] Creating 1.44MB floppy image..."
+	dd if=/dev/zero of=$(IMG) bs=$(IMG_BS) count=$(IMG_SIZE)                    # Create blank image
+	@echo "[+] Writing bootloader to image..."
+	dd if=$(BOOTLOADER_BIN) of=$(IMG) bs=$(IMG_BS) seek=0 count=1 conv=notrunc  # Write to sector 0
+	@echo "[+] Writing kernel to image..."
+	dd if=$(KERNEL_BIN) of=$(IMG) bs=$(IMG_BS) seek=1 count=20 conv=notrunc     # Write to sectors 1-20
+
+# Compile bootloader.asm (raw binary format)
 $(BOOTLOADER_BIN): $(BOOTLOADER_SRC) | prebuild
 	nasm -f bin -Wall -o $(BOOTLOADER_BIN) $(BOOTLOADER_SRC)
 
-# Create floppy image and write bootloader
-$(IMG): $(BOOTLOADER_BIN) $(KERNEL_BIN)
-	# Create blank 1.44MB floppy image
-	dd if=/dev/zero of=$(IMG) bs=$(IMG_BS) count=$(IMG_SIZE)
-	# Write bootloader to first sector
-	dd if=$(BOOTLOADER_BIN) of=$(IMG) bs=$(IMG_BS) count=1 conv=notrunc
+# Compile kernel.asm (raw binary format)
+$(KERNEL_BIN): $(KERNEL_SRC) | prebuild
+	nasm -f bin -Wall -o $(KERNEL_BIN) $(KERNEL_SRC)
 
-# Create build directory if not exists
+# -----------------------------------------------
+# Utility Targets
+# -----------------------------------------------
+
+# Create build directory structure
 prebuild:
-	mkdir -p build
+	mkdir -p $(BUILD)
 
-# Run Bochs emulator with configuration file
+# Run in Bochs emulator
 run: $(IMG)
 	bochs -q -f $(BOCHS_CFG)
 
 # Clean build artifacts
 clean:
-	rm -rf build
+	rm -rf $(BUILD)
+
+# Create timestamped release copy
+release: $(IMG)
+	@mkdir -p disk
+	@timestamp=$$(date +%Y%m%d_%H%M%S); \
+	cp $(IMG) disk/tiny_dos_$${timestamp}.img; \
+	echo "[+] Copied tiny.img to disk/tiny_dos_$(TIMESTAMP).img"
