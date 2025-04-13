@@ -1,6 +1,9 @@
 # Ignore .idea folder (JetBrains IDE)
 .idea/
 
+# Ignore build folder
+build/
+
 # Ignore OS-generated files
 .DS_Store
 Thumbs.db

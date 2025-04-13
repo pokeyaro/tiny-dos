@@ -1,0 +1,29 @@
+# ----------------------------------------
+# Bochs Configuration File (For Tiny DOS)
+# ----------------------------------------
+
+# Memory Configuration
+megs: 16                                                         # Allocate 16MB of RAM to the VM
+
+# Clock Settings
+clock: sync=realtime, time0=local, driftfix=slew                 # Synchronize CMOS RTC with host system time
+
+# BIOS Files
+romimage: file="/usr/local/share/bochs/BIOS-bochs-latest"        # Path to system BIOS image
+vgaromimage: file="/usr/local/share/bochs/VGABIOS-lgpl-latest"   # Path to VGA BIOS image
+
+# Boot Device Configuration
+floppya: 1_44=build/tiny.img, status=inserted                    # Mount 1.44MB floppy image (inserted at startup)
+boot: floppy                                                     # Set boot device order to floppy first
+
+# Logging
+log: build/bochslog.txt                                          # Output debug logs to this file
+
+# Peripheral Settings
+mouse: enabled=0                                                 # Disable mouse support
+
+# Display Settings
+display_library: x, options="gui_debug"                          # Use X Window display with debug GUI
+
+# Debug Features
+magic_break: enabled=1                                           # Enable magic breakpoint (trigger with `xchg bx, bx`)
