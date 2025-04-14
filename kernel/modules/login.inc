@@ -69,15 +69,16 @@ read_login_username:
     mov al, 0
     stosb
 
-    mov si, newline
-    call print
-    mov si, newline
-    call print
+.output_welcome_message:
+    call read_cmos_datetime
+    call format_datetime_string
 
-    mov si, welcome_msg
-    call print
-    mov si, newline
-    call print
+    NEWLINE 2
+
+    ECHO welcome_msg
+    NEWLINE
+    ECHO login_time_prefix
+    ECHO datetime_str
 
     ret
 

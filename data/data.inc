@@ -6,12 +6,25 @@
 ; =============================================
 
 ; ────────────────────────────────────────────
+; 📅 TIME DATA BUFFERS (Read-Write)
+; ────────────────────────────────────────────
+datetime_century     db 0
+datetime_year        db 0
+datetime_month       db 0
+datetime_day         db 0
+datetime_hour        db 0
+datetime_min         db 0
+datetime_sec         db 0
+datetime_str         times 20 db 0                          ; Format: "YYYY-MM-DD HH:MM:SS" + null
+
+; ────────────────────────────────────────────
 ; 📜 STATIC STRINGS (Read-Only)
 ; ────────────────────────────────────────────
 prompt_enter         db "A:\> Enter username: ", 0
 prompt_suffix_root   db "@localhost:~# ", 0
 prompt_suffix_user   db "@localhost:~$ ", 0
 welcome_msg          db "Welcome to Tiny-DOS!", 0
+login_time_prefix    db 'Login successful on: ', 0
 newline              db 13, 10, 0                           ; Newline character, defined separately
 
 ; ────────────────────────────────────────────
