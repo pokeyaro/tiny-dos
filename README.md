@@ -21,10 +21,11 @@ of OS development.
     - Added a dynamic greeting based on the system time.
     - Added `10+` built-in commands for enhanced functionality.
 - ✅ **Refactor Code**: Transition from a single, soon-to-be-bloated kernel file to a better-organized *"pseudo-modular"* structure.
+- ✅ **Optimized logic**: Command dispatching using jump tables instead of linear matching (based on dual-character hashing).
 
 ## TODO
 
-- ⬜ **Optimize command dispatch**: Replace the current linear matching logic with a jump table for more efficient command handling.
+- ⬜ **New features:** To be determined.
 
 ## Milestone
 

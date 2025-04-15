@@ -2,311 +2,97 @@ global handle_command
 
 ; ---------------------------------------------
 ; COMMAND DISPATCHER
-; Purpose: Route shell commands to appropriate handlers
+; Purpose: High-efficiency command routing for x86 real-mode systems
 ; Features:
 ;   - Supports 10+ built-in commands
 ;   - Handles quoted arguments
 ;   - Provides unknown command feedback
 ; Design:
-;   - Linear command matching (optimized for BIOS)
-;   - Clear error messaging
+;   - Jump-table for common commands (O(1) lookup)
+;   - Linear scan for special cases (echo etc.)
+;   - Compatibility:
+;     * 8086+ (16-bit real mode)
+;     * Optional 386+ optimizations (EAX)
 ; ---------------------------------------------
 handle_command:
 
 ; ─────────────────────────────────────────────
-; INPUT VALIDATION
+; Input validation
 ; ─────────────────────────────────────────────
-.check_empty:
+.empty_char:
     mov si, command_buf
     cmp byte [si], 0
     je .done
 
 ; ─────────────────────────────────────────────
-; COMMAND MATCHING
+; Multi-character command processing
 ; ─────────────────────────────────────────────
-; 'help' command
-.check_cmd_help:
-    cmp byte [si], 'h'
-    jne .check_cmd_?
-    inc si
-    cmp byte [si], 'e'
-    jne .check_cmd_?
-    inc si
-    cmp byte [si], 'l'
-    jne .check_cmd_?
-    inc si
-    cmp byte [si], 'p'
-    jne .check_cmd_?
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_?
-    call command_help
-    ret
+.single_char:
+    cmp byte [si+1], 0                         ; Check if single-character command
+    jne .multi_char
+    cmp byte [si], '?'                         ; Special case for '?' mark
+    je .cmd_question
+    jmp .unknown                               ; Other single-char commands are invalid
 
-; '?' command
-.check_cmd_?:
-    mov si, command_buf
-    cmp byte [si], '?'
-    jne .check_cmd_arch
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_arch
-    call command_help
-    ret
+; ─────────────────────────────────────────────
+; Multi-character command processing
+; ─────────────────────────────────────────────
+.multi_char:
+    ; Calculate 2-character hash (convert to uppercase)
+    mov bx, [si]
+    and bx, 0xDFDF
 
-; 'arch' command
-.check_cmd_arch:
-    mov si, command_buf
-    cmp byte [si], 'a'
-    jne .check_cmd_cls
-    inc si
-    cmp byte [si], 'r'
-    jne .check_cmd_cls
-    inc si
-    cmp byte [si], 'c'
-    jne .check_cmd_cls
-    inc si
-    cmp byte [si], 'h'
-    jne .check_cmd_cls
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_cls
-    call command_arch
-    ret
+    ; Jump table matching (most commands)
+    cmp bx, 'H' + ('E'<<8)                     ; `help`
+    je .cmd_help
+    cmp bx, 'A' + ('R'<<8)                     ; `arch`
+    je .cmd_arch
+    cmp bx, 'C' + ('L'<<8)                     ; `cls`
+    je .cmd_cls
+    cmp bx, 'D' + ('A'<<8)                     ; `date`
+    je .cmd_date
+    cmp bx, 'I' + ('P'<<8)                     ; `ip addr`
+    je .cmd_ipaddr
+    cmp bx, 'L' + ('O'<<8)                     ; `logout`
+    je .cmd_logout
+    cmp bx, 'P' + ('W'<<8)                     ; `pwd`
+    je .cmd_pwd
+    cmp bx, 'R' + ('E'<<8)                     ; `reboot`
+    je .cmd_reboot
+    cmp bx, 'S' + ('H'<<8)                     ; `shutdown`
+    je .cmd_shutdown
+    cmp bx, 'T' + ('T'<<8)                     ; `tty`
+    je .cmd_tty
+    cmp bx, 'W' + ('H'<<8)                     ; `whoami`
+    je .cmd_whoami
 
-; 'cls' command
-.check_cmd_cls:
-    mov si, command_buf
-    cmp byte [si], 'c'
-    jne .check_cmd_date
-    inc si
-    cmp byte [si], 'l'
-    jne .check_cmd_date
-    inc si
-    cmp byte [si], 's'
-    jne .check_cmd_date
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_date
-    call command_cls
-    ret
+    ; Special linear matching (echo and zodiacsay)
+    cmp bx, 'E' + ('C'<<8)                     ; `echo "string"`
+    je .check_echo
+    cmp bx, 'Z' + ('O'<<8)                     ; `zodiacsay "string"`
+    je .check_zodiacsay
 
-; 'date' command
-.check_cmd_date:
-    mov si, command_buf
-    cmp byte [si], 'd'
-    jne .check_cmd_echo
-    inc si
-    cmp byte [si], 'a'
-    jne .check_cmd_echo
-    inc si
-    cmp byte [si], 't'
-    jne .check_cmd_echo
-    inc si
-    cmp byte [si], 'e'
-    jne .check_cmd_echo
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_echo
-    call command_date
-    ret
+    jmp .unknown
 
+; ─────────────────────────────────────────────
+; Parameterized command matching
+; ─────────────────────────────────────────────
 ; 'echo' command
-.check_cmd_echo:
-    mov si, command_buf
-    cmp byte [si], 'e'
-    jne .check_cmd_ipaddr
-    inc si
-    cmp byte [si], 'c'
-    jne .check_cmd_ipaddr
-    inc si
-    cmp byte [si], 'h'
-    jne .check_cmd_ipaddr
-    inc si
-    cmp byte [si], 'o'
-    jne .check_cmd_ipaddr
-    inc si
-    cmp byte [si], ' '                         ; Space is required!
-    jne .check_cmd_ipaddr
-    inc si
-    cmp byte [si], '"'                         ; Must be double quotes!
-    jne .check_cmd_ipaddr
-    inc si
+.check_echo:
+    ; Use 32-bit registers (requires 386+ CPU)
+    db 66h               ; Operand size prefix
+    mov eax, [si]        ; Safely read 4 bytes
+    db 66h
+    and eax, 0xDFDFDFDF  ; 32-bit uppercase conversion (fixed mask)
+    db 66h
+    cmp eax, 'ECHO'
+    jne .unknown
     call command_echo
     ret
 
-; 'ipaddr' command
-.check_cmd_ipaddr:
-    mov si, command_buf
-    cmp byte [si], 'i'
-    jne .check_cmd_logout
-    inc si
-    cmp byte [si], 'p'
-    jne .check_cmd_logout
-    inc si
-    cmp byte [si], ' '                         ; Space is required!
-    jne .check_cmd_logout
-    inc si
-    cmp byte [si], 'a'
-    jne .check_cmd_logout
-    inc si
-    cmp byte [si], 'd'
-    jne .check_cmd_logout
-    inc si
-    cmp byte [si], 'd'
-    jne .check_cmd_logout
-    inc si
-    cmp byte [si], 'r'
-    jne .check_cmd_logout
-    inc si
-    call command_ipaddr
-    ret
-
-; 'logout' command
-.check_cmd_logout:
-    mov si, command_buf
-    cmp byte [si], 'l'
-    jne .check_cmd_pwd
-    inc si
-    cmp byte [si], 'o'
-    jne .check_cmd_pwd
-    inc si
-    cmp byte [si], 'g'
-    jne .check_cmd_pwd
-    inc si
-    cmp byte [si], 'o'
-    jne .check_cmd_pwd
-    inc si
-    cmp byte [si], 'u'
-    jne .check_cmd_pwd
-    inc si
-    cmp byte [si], 't'
-    jne .check_cmd_pwd
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_pwd
-    call command_logout
-    ret
-
-; 'pwd' command
-.check_cmd_pwd:
-    mov si, command_buf
-    cmp byte [si], 'p'
-    jne .check_cmd_reboot
-    inc si
-    cmp byte [si], 'w'
-    jne .check_cmd_reboot
-    inc si
-    cmp byte [si], 'd'
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_reboot
-    call command_pwd
-    ret
-
-; 'reboot' command
-.check_cmd_reboot:
-    mov si, command_buf
-    cmp byte [si], 'r'
-    jne .check_cmd_shutdown
-    inc si
-    cmp byte [si], 'e'
-    jne .check_cmd_shutdown
-    inc si
-    cmp byte [si], 'b'
-    jne .check_cmd_shutdown
-    inc si
-    cmp byte [si], 'o'
-    jne .check_cmd_shutdown
-    inc si
-    cmp byte [si], 'o'
-    jne .check_cmd_shutdown
-    inc si
-    cmp byte [si], 't'
-    jne .check_cmd_shutdown
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_shutdown
-    call command_reboot
-    ret
-
-; 'shutdown' command
-.check_cmd_shutdown:
-    mov si, command_buf
-    cmp byte [si], 's'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 'h'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 'u'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 't'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 'd'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 'o'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 'w'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 'n'
-    jne .check_cmd_tty
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_tty
-    call command_shutdown
-    ret
-
-; 'tty' command
-.check_cmd_tty:
-    mov si, command_buf
-    cmp byte [si], 't'
-    jne .check_cmd_whoami
-    inc si
-    cmp byte [si], 't'
-    jne .check_cmd_whoami
-    inc si
-    cmp byte [si], 'y'
-    jne .check_cmd_whoami
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_whoami
-    call command_tty
-    ret
-
-; 'whoami' command
-.check_cmd_whoami:
-    mov si, command_buf
-    cmp byte [si], 'w'
-    jne .check_cmd_zodiacsay
-    inc si
-    cmp byte [si], 'h'
-    jne .check_cmd_zodiacsay
-    inc si
-    cmp byte [si], 'o'
-    jne .check_cmd_zodiacsay
-    inc si
-    cmp byte [si], 'a'
-    jne .check_cmd_zodiacsay
-    inc si
-    cmp byte [si], 'm'
-    jne .check_cmd_zodiacsay
-    inc si
-    cmp byte [si], 'i'
-    jne .check_cmd_zodiacsay
-    inc si
-    cmp byte [si], 0
-    jne .check_cmd_zodiacsay
-    call command_whoami
-    ret
-
 ; 'zodiacsay' command
-.check_cmd_zodiacsay:
+.check_zodiacsay:
+   ; Character-by-character check (16-bit mode)
     mov si, command_buf
     cmp byte [si], 'z'
     jne .unknown
@@ -335,17 +121,107 @@ handle_command:
     cmp byte [si], 'y'
     jne .unknown
     inc si
-    cmp byte [si], ' '
-    jne .unknown
-    inc si
-    cmp byte [si], '"'
-    jne .unknown
-    inc si
     call command_zodiacsay
     ret
 
 ; ─────────────────────────────────────────────
-; ERROR HANDLING
+; Built-in command handlers
+; ─────────────────────────────────────────────
+; 'help' command
+.cmd_help:
+    mov di, cmd_help_str
+    call validate_full_cmd
+    jc .unknown
+    call command_help
+    ret
+
+; '?' command
+.cmd_question:
+    call command_help
+    ret
+
+; 'arch' command
+.cmd_arch:
+    mov di, cmd_arch_str
+    call validate_full_cmd
+    jc .unknown
+    call command_arch
+    ret
+
+; 'cls' command
+.cmd_cls:
+    mov di, cmd_cls_str
+    call validate_full_cmd
+    jc .unknown
+    call command_cls
+    ret
+
+; 'date' command
+.cmd_date:
+    mov di, cmd_date_str
+    call validate_full_cmd
+    jc .unknown
+    call command_date
+    ret
+
+; 'ip addr' command
+.cmd_ipaddr:
+    mov di, cmd_ipaddr_str
+    call validate_full_cmd
+    jc .unknown
+    call command_ipaddr
+    ret
+
+; 'logout' command
+.cmd_logout:
+    mov di, cmd_logout_str
+    call validate_full_cmd
+    jc .unknown
+    call command_logout
+    ret
+
+; 'pwd' command
+.cmd_pwd:
+    mov di, cmd_pwd_str
+    call validate_full_cmd
+    jc .unknown
+    call command_pwd
+    ret
+
+; 'reboot' command
+.cmd_reboot:
+    mov di, cmd_reboot_str
+    call validate_full_cmd
+    jc .unknown
+    call command_reboot
+    ret
+
+; 'shutdown' command
+.cmd_shutdown:
+    mov di, cmd_shutdown_str
+    call validate_full_cmd
+    jc .unknown
+    call command_shutdown
+    ret
+
+; 'tty' command
+.cmd_tty:
+    mov di, cmd_tty_str
+    call validate_full_cmd
+    jc .unknown
+    call command_tty
+    ret
+
+; 'whoami' command
+.cmd_whoami:
+    mov di, cmd_whoami_str
+    call validate_full_cmd
+    jc .unknown
+    call command_whoami
+    ret
+
+; ─────────────────────────────────────────────
+; Error Handling
 ; ─────────────────────────────────────────────
 .unknown:
     NEWLINE 2
@@ -361,4 +237,34 @@ handle_command:
     NEWLINE
 
 .done:
+    ret
+
+; ─────────────────────────────────────────────
+; Subroutines
+; Input: DI = command template address, SI = user input
+; Output: CF=0 if match successful
+; ─────────────────────────────────────────────
+validate_full_cmd:
+    push si
+    push di
+.compare_loop:
+    mov al, [di]
+    or al, al
+    jz .check_end
+    cmp al, [si]
+    jne .mismatch
+    inc di
+    inc si
+    jmp .compare_loop
+.check_end:
+    cmp byte [si], 0
+    je .match
+.mismatch:
+    stc
+    jmp .done
+.match:
+    clc
+.done:
+    pop di
+    pop si
     ret
