@@ -1,28 +1,47 @@
-[BITS 16]                       ; Generate 16-bit code
-[ORG 0x7C00]                    ; Bootloader loads at memory address 0x7C00
+%include "include/global.inc"
 
-KERNEL_ADDR equ 0x0500          ; Memory address where kernel will be loaded
+; =============================================
+; Bootloader
+; Architecture: x86 Real Mode
+; Memory Map:
+;   Loads kernel at: 0x10000 (0x1000:0x0000)
+;   Stack: 0x9000:0xFFFE
+; =============================================
+[BITS 16]
+[ORG BOOT_LOADER]
 
 section .text
-global _start
+align ALIGNMENT
 
 ; --- Main Entry Point ---
+global _start
 _start:
-    ; Read disk using CHS mode
-    mov ch, 0                   ; Cylinder/Track number = 0
-    mov dh, 0                   ; Head number = 0
-    mov cl, 2                   ; Sector number = 2 (sectors are 1-based)
-    mov al, 20                  ; Number of sectors to read (20*512 = 10KB)
-    mov bx, KERNEL_ADDR         ; ES:BX = Destination buffer (0x0000:0x0500 = 0x0500 linear)
-    mov ah, 0x02                ; BIOS function 0x02: Read disk sectors
-    mov dl, 0x00                ; Drive number (0x00 = first floppy drive)
+    ; Load Kernel
+    mov ax, KERNEL_BASE                       ; Destination segment
+    mov es, ax
+    mov bx, KERNEL_LIMIT                      ; BX = KERNEL_LIMIT (0x0000)
 
-    ; Invoke BIOS disk I/O interrupt
-    int 0x13                    ; Call BIOS interrupt 13h for disk services
+    ; Configure Disk Read (CHS mode)
+    mov ch, CYLINDER_NUM                      ; Cylinder/Track number
+    mov dh, HEAD_NUM                          ; Head number
+    mov cl, SECTOR_NUM                        ; Sector number
+    mov al, SECTORS_TO_READ                   ; Number of sectors to read
+    mov dl, DISK_DRIVE_NUM                    ; Drive number (0x00 = first floppy drive)
+    mov ah, 0x02                              ; INT 13h function 0x02: Read disk sectors
 
-   ; After loading, jump to kernel entry point
-    jmp 0x0000:KERNEL_ADDR      ; Far jump to kernel code (CS=0x0000, IP=0x0500)
+    ; Execute Read
+    int 0x13                                  ; Invoke BIOS disk I/O interrupt
+    jc .disk_error                            ; Fallthrough on success
+
+    ; Handoff to Kernel
+    jmp KERNEL_BASE:KERNEL_LIMIT              ; Far jump to kernel address
+
+; --- Error Handler ---
+.disk_error:
+    mov ax, (0x0E << 8) | '?'                 ; AH=0x0E (BIOS teletype output), AL='?' (error symbol)
+    int 0x10
+    hlt
 
 ; --- Boot Signature Padding ---
-times 510 - ($ - $$) db 0       ; Pad remainder of boot sector with zeros
-dw 0xAA55                       ; Boot signature (magic number at end of sector)
+times BOOT_SIZE - MAGIC_SIZE - ($ - $$) db 0  ; Pad remainder of boot sector with zeros
+dw BOOT_SIGNATURE                             ; Boot signature (magic number at end of sector)

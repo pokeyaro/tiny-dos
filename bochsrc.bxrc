@@ -6,7 +6,8 @@
 megs: 16                                                         # Allocate 16MB of RAM to the VM
 
 # Clock Settings
-clock: sync=realtime, time0=local, driftfix=slew                 # Synchronize CMOS RTC with host system time
+# clock: sync=realtime, time0=local, driftfix=slew
+clock: sync=none, time0=utc                                      # Disable time synchronization, Keep CMOS clock in UTC time standard
 
 # BIOS Files
 romimage: file="/usr/local/share/bochs/BIOS-bochs-latest"        # Path to system BIOS image
