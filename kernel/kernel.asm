@@ -47,8 +47,17 @@ _start:
 ; --- Command Modules ---
 ; Note: All depend on command.inc
 %include "commands/help.inc"
+%include "commands/arch.inc"
 %include "commands/cls.inc"
 %include "commands/date.inc"
+%include "commands/echo.inc"
+%include "commands/ipaddr.inc"
+%include "commands/logout.inc"
+%include "commands/pwd.inc"
+%include "commands/reboot.inc"
+%include "commands/shutdown.inc"
+%include "commands/tty.inc"
+%include "commands/whoami.inc"
 
 ; --- Utility Subroutines Library ---
 %include "libs/clear.inc"
