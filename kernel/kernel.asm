@@ -41,7 +41,14 @@ _start:
 %include "kernel/modules/auth.inc"
 %include "kernel/modules/prompt.inc"
 %include "kernel/modules/shell.inc"
+%include "kernel/modules/command.inc"
 %include "kernel/modules/datetime.inc"
+
+; --- Command Modules ---
+; Note: All depend on command.inc
+%include "commands/help.inc"
+%include "commands/cls.inc"
+%include "commands/date.inc"
 
 ; --- Utility Subroutines Library ---
 %include "libs/clear.inc"

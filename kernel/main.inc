@@ -30,8 +30,15 @@ _main:
 ; Enter shell main loop
 ; ---------------------------------------------
 shell:
+    cmp byte [cmd_cls_flag], 1                 ; 'cls' command logic will trigger the condition
+    je .skip_newline
+
     NEWLINE
+
+.skip_newline:
+    mov byte [cmd_cls_flag], 0                 ; Reset to 0 (skip only once)
     call show_prompt                           ; ✅ Display the prompt again
     call read_command                          ; ⌨️ Wait for user input
+    call handle_command                        ; ❓  Identify the available commands
     jmp shell
     ret

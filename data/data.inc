@@ -33,3 +33,16 @@ newline              db 13, 10, 0                           ; Newline character,
 username_buf         times (MAX_USERNAME_LEN + 1) db 0      ; Username input buffer
 prompt_buf           times (MAX_USERNAME_LEN + 15 + 1) db 0 ; Command prompt buffer
 command_buf          times (MAX_COMMAND_LEN + 1) db 0       ; Command buffer
+
+; ────────────────────────────────────────────
+; 🔧 SYSTEM BUILT-IN COMMANDS (Read-Only)
+; ────────────────────────────────────────────
+cmd_unknown_prefix   db 'Unknown command: ', 0              ; Error template
+
+cmd_help_1           db 'Available commands:', 13, 10, 0
+cmd_help_2           db '  help       Show help message', 13, 10, 0
+cmd_help_3           db '  ?          Same as help', 13, 10, 0
+cmd_help_4           db '  cls        Clear screen', 13, 10, 0
+cmd_help_5           db '  date       Show current date/time', 13, 10, 0
+
+cmd_cls_flag         db 0                                   ; Screen state (0=dirty,1=clean)

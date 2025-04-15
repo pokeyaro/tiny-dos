@@ -14,7 +14,7 @@ Tiny-DOS is a minimalistic, modular 16-bit DOS-like operating system for educati
 
 ## TODO
 
-- ⬜ **Add Basic Commands**: Implement essential commands such as `help`, `cls`, `date`, etc.
+- ⬜ **Add more built-in commands**: Implement additional commands to further expand system functionality and improve user experience.
 
 ## Milestone
 
