@@ -1,5 +1,14 @@
 # tiny-dos
-Tiny-DOS is a minimalistic, modular 16-bit DOS-like operating system for educational purposes.
+
+> "This project doesn't reinvent the wheel — it just lets you touch the axle for the first time."
+
+## Background
+
+**Tiny-DOS** is a minimalistic, modular 16-bit operating system that emulates a DOS-like (or Unix-like) environment. 
+It is designed primarily for educational purposes, allowing users to explore and learn the fundamental 
+concepts of system programming, low-level operations, and assembly language. The operating system is 
+built using a combination of assembly language and simple kernel design, offering a hands-on experience 
+of OS development.
 
 ## Progress
 
@@ -22,4 +31,4 @@ Tiny-DOS is a minimalistic, modular 16-bit DOS-like operating system for educati
 | Version (Stage) | Content                                   | Difficulty Level | Implementation                                      |
 |-----------------|-------------------------------------------|------------------|-----------------------------------------------------|
 | v1              | Bootloader + Kernel + Shell + Input/Print | ⭐⭐               | Basic functionality with simple implementation      |
-| v2              | Modularization + Macro + libs + Commands  | ⭐⭐⭐              | Enhanced structure and added more built-in commands |
+| v2              | Modularization + Macro + Libs + Commands  | ⭐⭐⭐              | Enhanced structure and added more built-in commands |
