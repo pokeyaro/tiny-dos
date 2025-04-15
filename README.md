@@ -22,14 +22,15 @@ of OS development.
     - Added `10+` built-in commands for enhanced functionality.
 - ✅ **Refactor Code**: Transition from a single, soon-to-be-bloated kernel file to a better-organized *"pseudo-modular"* structure.
 - ✅ **Optimized logic**: Command dispatching using jump tables instead of linear matching (based on dual-character hashing).
-
+    - To validate the jump table's extensibility, intentionally added a `clear` command that collides with `cls` prefix.
 ## TODO
 
 - ⬜ **New features:** To be determined.
 
 ## Milestone
 
-| Version (Stage) | Content                                   | Difficulty Level | Implementation                                      |
-|-----------------|-------------------------------------------|------------------|-----------------------------------------------------|
-| v1              | Bootloader + Kernel + Shell + Input/Print | ⭐⭐               | Basic functionality with simple implementation      |
-| v2              | Modularization + Macro + Libs + Commands  | ⭐⭐⭐              | Enhanced structure and added more built-in commands |
+| Version (Stage) | Content                                   | Difficulty Level | Implementation                                                                           |
+|-----------------|-------------------------------------------|------------------|------------------------------------------------------------------------------------------|
+| v1              | Bootloader + Kernel + Shell + Input/Print | ⭐⭐               | Basic functionality with simple implementation                                           |
+| v2              | Modularization + Macro + Libs + Commands  | ⭐⭐⭐              | Enhanced structure and added more built-in commands                                      |
+| v3              | Jump table optimization                   | ⭐⭐⭐              | Improved command dispatching logic by replacing linear string matching with a jump table |

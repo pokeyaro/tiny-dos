@@ -90,20 +90,21 @@ cmd_reboot_msg       db 'Rebooting Tiny-DOS...', 0
 cmd_shutdown_msg     db 'Goodbye from Tiny-DOS!', 0
 
 ; Command string template (for complete verification)
-cmd_help_str         db 'help',0
-cmd_question_str     db '?',0
-cmd_arch_str         db 'arch',0
-cmd_cls_str          db 'cls',0
-cmd_date_str         db 'date',0
-cmd_echo_str         db 'echo',0
-cmd_ipaddr_str       db 'ip addr',0
-cmd_logout_str       db 'logout',0
-cmd_pwd_str          db 'pwd',0
-cmd_reboot_str       db 'reboot',0
-cmd_shutdown_str     db 'shutdown',0
-cmd_tty_str          db 'tty',0
-cmd_whoami_str       db 'whoami',0
-cmd_zodiacsay_str    db 'zodiacsay',0
+cmd_help_str         db 'help', 0
+cmd_question_str     db '?', 0
+cmd_arch_str         db 'arch', 0
+cmd_cls_str          db 'cls', 0
+cmd_clear_str        db 'clear', 0                          ; hidden command
+cmd_date_str         db 'date', 0
+cmd_echo_str         db 'echo', 0
+cmd_ipaddr_str       db 'ip addr', 0
+cmd_logout_str       db 'logout', 0
+cmd_pwd_str          db 'pwd', 0
+cmd_reboot_str       db 'reboot', 0
+cmd_shutdown_str     db 'shutdown', 0
+cmd_tty_str          db 'tty', 0
+cmd_whoami_str       db 'whoami', 0
+cmd_zodiacsay_str    db 'zodiacsay', 0
 
 ; Zodiacsay Command Related
 cmd_zodiac_limit     db 12                                  ; Total zodiac signs

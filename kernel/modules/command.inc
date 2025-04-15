@@ -47,8 +47,8 @@ handle_command:
     je .cmd_help
     cmp bx, 'A' + ('R'<<8)                     ; `arch`
     je .cmd_arch
-    cmp bx, 'C' + ('L'<<8)                     ; `cls`
-    je .cmd_cls
+    cmp bx, 'C' + ('L'<<8)                     ; `cls` or `clear`
+    je .cmd_clean
     cmp bx, 'D' + ('A'<<8)                     ; `date`
     je .cmd_date
     cmp bx, 'I' + ('P'<<8)                     ; `ip addr`
@@ -148,11 +148,25 @@ handle_command:
     call command_arch
     ret
 
-; 'cls' command
-.cmd_cls:
+.cmd_clean:
     mov di, cmd_cls_str
     call validate_full_cmd
+    jnc .cmd_cls
+
+    mov di, cmd_clear_str
+    call validate_full_cmd
+    jnc .cmd_clear
+
     jc .unknown
+    ret
+
+; 'cls' command
+.cmd_cls:
+    call command_cls
+    ret
+
+; 'clear' command
+.cmd_clear:
     call command_cls
     ret
 
