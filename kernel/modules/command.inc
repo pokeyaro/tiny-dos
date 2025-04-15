@@ -94,7 +94,6 @@ handle_command:
 ; ─────────────────────────────────────────────
 ; ERROR HANDLING
 ; ─────────────────────────────────────────────
-    lodsb                                      ; AL = [SI], SI++
 .unknown:
     NEWLINE 2
     ECHO cmd_unknown_prefix                    ; "Unknown command: "
