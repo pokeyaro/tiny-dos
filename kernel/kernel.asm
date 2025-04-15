@@ -58,11 +58,13 @@ _start:
 %include "commands/shutdown.inc"
 %include "commands/tty.inc"
 %include "commands/whoami.inc"
+%include "commands/zodiacsay.inc"
 
 ; --- Utility Subroutines Library ---
 %include "libs/clear.inc"
 %include "libs/halt.inc"
 %include "libs/print.inc"
+%include "libs/rand.inc"
 %include "libs/string.inc"
 
 ; ─────────────────────────────────────────────

@@ -6,5 +6,5 @@ command_help:
          cmd_help_4, cmd_help_5, cmd_help_6, \
          cmd_help_7, cmd_help_8, cmd_help_9, \
          cmd_help_10, cmd_help_11, cmd_help_12, \
-         cmd_help_13, cmd_help_14
+         cmd_help_13, cmd_help_14, cmd_help_15
     ret

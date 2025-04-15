@@ -283,26 +283,65 @@ handle_command:
 .check_cmd_whoami:
     mov si, command_buf
     cmp byte [si], 'w'
-    jne .unknown
+    jne .check_cmd_zodiacsay
     inc si
     cmp byte [si], 'h'
+    jne .check_cmd_zodiacsay
+    inc si
+    cmp byte [si], 'o'
+    jne .check_cmd_zodiacsay
+    inc si
+    cmp byte [si], 'a'
+    jne .check_cmd_zodiacsay
+    inc si
+    cmp byte [si], 'm'
+    jne .check_cmd_zodiacsay
+    inc si
+    cmp byte [si], 'i'
+    jne .check_cmd_zodiacsay
+    inc si
+    cmp byte [si], 0
+    jne .check_cmd_zodiacsay
+    call command_whoami
+    ret
+
+; 'zodiacsay' command
+.check_cmd_zodiacsay:
+    mov si, command_buf
+    cmp byte [si], 'z'
     jne .unknown
     inc si
     cmp byte [si], 'o'
     jne .unknown
     inc si
-    cmp byte [si], 'a'
-    jne .unknown
-    inc si
-    cmp byte [si], 'm'
+    cmp byte [si], 'd'
     jne .unknown
     inc si
     cmp byte [si], 'i'
     jne .unknown
     inc si
-    cmp byte [si], 0
+    cmp byte [si], 'a'
     jne .unknown
-    call command_whoami
+    inc si
+    cmp byte [si], 'c'
+    jne .unknown
+    inc si
+    cmp byte [si], 's'
+    jne .unknown
+    inc si
+    cmp byte [si], 'a'
+    jne .unknown
+    inc si
+    cmp byte [si], 'y'
+    jne .unknown
+    inc si
+    cmp byte [si], ' '
+    jne .unknown
+    inc si
+    cmp byte [si], '"'
+    jne .unknown
+    inc si
+    call command_zodiacsay
     ret
 
 ; ─────────────────────────────────────────────
