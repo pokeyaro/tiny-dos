@@ -42,14 +42,17 @@ $(IMG): $(BOOTLOADER_BIN) $(KERNEL_BIN)
 	dd if=$(BOOTLOADER_BIN) of=$(IMG) bs=$(IMG_BS) seek=0 count=1 conv=notrunc  # Write to sector 0
 	@echo "[+] Writing kernel to image..."
 	dd if=$(KERNEL_BIN) of=$(IMG) bs=$(IMG_BS) seek=1 count=20 conv=notrunc     # Write to sectors 1-20
+	@echo "[+] Floppy image creation complete."
 
 # Compile bootloader.asm (raw binary format)
 $(BOOTLOADER_BIN): $(BOOTLOADER_SRC) | prebuild
-	nasm -f bin -Wall -o $(BOOTLOADER_BIN) $(BOOTLOADER_SRC)
+	@echo "[+] Compiling bootloader..."
+	nasm -f bin -o $(BOOTLOADER_BIN) $(BOOTLOADER_SRC)
 
 # Compile kernel.asm (raw binary format)
 $(KERNEL_BIN): $(KERNEL_SRC) | prebuild
-	nasm -f bin -Wall -o $(KERNEL_BIN) $(KERNEL_SRC)
+	@echo "[+] Compiling kernel..."
+	nasm -f bin -o $(KERNEL_BIN) $(KERNEL_SRC)
 
 # -----------------------------------------------
 # Utility Targets
@@ -57,19 +60,24 @@ $(KERNEL_BIN): $(KERNEL_SRC) | prebuild
 
 # Create build directory structure
 prebuild:
+	@echo "[+] Creating build directory..."
 	mkdir -p $(BUILD)
 
 # Run in Bochs emulator
 run: $(IMG)
+	@echo "[+] Running in Bochs emulator..."
 	bochs -q -f $(BOCHS_CFG)
 
 # Clean build artifacts
 clean:
+	@echo "[+] Cleaning build artifacts..."
 	rm -rf $(BUILD)
 
 # Create timestamped release copy
 release: $(IMG)
+	@echo "[+] Creating release copy..."
 	@mkdir -p disk
 	@timestamp=$$(date +%Y%m%d_%H%M%S); \
 	cp $(IMG) disk/tiny_dos_$${timestamp}.img; \
 	echo "[+] Copied tiny.img to disk/tiny_dos_$(TIMESTAMP).img"
+	@echo "[+] Release copy created."
